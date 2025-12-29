@@ -1,14 +1,32 @@
 # Git
-.git
+.git/
 .gitignore
+.github/
 
 # Python
-__pycache__
+__pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-.venv
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.venv/
 venv/
 ENV/
 env/
@@ -25,15 +43,20 @@ env/
 .coverage
 htmlcov/
 tests/
+*.test
+*.spec
 
 # 文档
 docs/
 *.md
 !README.md
 
-# 配置文件（使用 volume 挂载）
+# 配置文件（运行时通过 volume 挂载）
 .env
+.env.*
+!.env.example
 config.yaml
+!config.yaml.example
 
 # 日志
 logs/
@@ -42,16 +65,28 @@ logs/
 # 数据库
 *.db
 *.sqlite
+*.sql
 
 # Docker
 docker-compose.yml
+docker-compose.*.yml
 Dockerfile
+Dockerfile.*
 .dockerignore
 
 # CI/CD
 .gitlab-ci.yml
+deploy.sh
+DEPLOYMENT*.md
+CONFIG_GUIDE.md
+openresty.conf
 
-# 其他
+# OS
 .DS_Store
+Thumbs.db
 *.bak
 *.tmp
+*.swp
+
+# 备份
+backup_*
