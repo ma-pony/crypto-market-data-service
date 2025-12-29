@@ -1,0 +1,40 @@
+# Crypto Market Data Service - YAML Configuration
+# Copy this file to config.yaml and update values as needed
+
+# Exchange configurations
+exchanges:
+  - id: binance
+    # API keys can be set via environment variables for security
+    # api_key: ${BINANCE_API_KEY}
+    # secret: ${BINANCE_SECRET}
+    symbols:
+      - BTC/USDT
+      - ETH/USDT
+
+  - id: okx
+    # api_key: ${OKX_API_KEY}
+    # secret: ${OKX_SECRET}
+    symbols:
+      - BTC/USDT
+      - ETH/USDT
+
+  - id: gateio
+    # API keys can be set via environment variables for security
+    # api_key: ${GATEIO_API_KEY}
+    # secret: ${GATEIO_SECRET}
+    symbols:
+      - BTC/USDT
+      - ETH/USDT
+
+# Supported timeframes for OHLCV data collection
+timeframes:
+  - 1m
+  - 5m
+  - 15m
+  - 1h
+  - 4h
+  - 1d
+
+# Gap filling configuration
+gap_fill_enabled: true
+gap_fill_days: 30
