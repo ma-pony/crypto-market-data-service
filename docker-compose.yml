@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  # 应用服务（使用宿主机的 PostgreSQL 和 Redis）
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: market_data_app
+    network_mode: host  # 使用宿主机网络，可以直接访问 localhost 的服务
+    environment:
+      # 使用宿主机的数据库和 Redis（通过 localhost 访问）
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/market_data}
+      REDIS_URL: ${REDIS_URL:-redis://localhost:6379/0}
+      OHLCV_CACHE_SIZE: ${OHLCV_CACHE_SIZE:-500}
+      TICKER_TTL_SECONDS: ${TICKER_TTL_SECONDS:-10}
+      API_HOST: 0.0.0.0
+      API_PORT: ${API_PORT:-8000}
+      GAP_FILL_ENABLED: ${GAP_FILL_ENABLED:-true}
+      GAP_FILL_DAYS: ${GAP_FILL_DAYS:-7}
+      CONFIG_FILE: /app/config.yaml
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - ./logs:/app/logs
+    restart: unless-stopped

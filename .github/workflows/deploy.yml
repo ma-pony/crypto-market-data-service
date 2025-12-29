@@ -1,0 +1,74 @@
+name: Deploy to Aliyun
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Aliyun Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          script: |
+            set -e
+            
+            # 部署目录
+            DEPLOY_DIR="/opt/crypto-market-data-service"
+            
+            # 进入部署目录
+            cd $DEPLOY_DIR
+            
+            # 拉取最新代码
+            echo "拉取最新代码..."
+            git pull origin main
+            
+            # 重新构建并启动服务
+            echo "重新构建 Docker 镜像..."
+            docker-compose build app
+            
+            echo "重启应用服务..."
+            docker-compose up -d app
+            
+            # 等待服务启动
+            echo "等待服务启动..."
+            sleep 10
+            
+            # 运行数据库迁移
+            echo "运行数据库迁移..."
+            docker-compose exec -T app alembic upgrade head
+            
+            # 检查服务状态
+            echo "检查服务状态..."
+            docker-compose ps
+            
+            # 清理旧镜像
+            echo "清理旧镜像..."
+            docker image prune -f
+            
+            echo "✅ 部署完成！"
+            
+            # 健康检查
+            echo "执行健康检查..."
+            sleep 5
+            curl -f http://localhost:8000/health || echo "⚠️ 健康检查失败"
+
+      - name: Notify deployment status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ 部署成功"
+          else
+            echo "❌ 部署失败"
+          fi

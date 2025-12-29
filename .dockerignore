@@ -1,0 +1,57 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.kiro/
+
+# 测试
+.pytest_cache/
+.coverage
+htmlcov/
+tests/
+
+# 文档
+docs/
+*.md
+!README.md
+
+# 配置文件（使用 volume 挂载）
+.env
+config.yaml
+
+# 日志
+logs/
+*.log
+
+# 数据库
+*.db
+*.sqlite
+
+# Docker
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# CI/CD
+.gitlab-ci.yml
+
+# 其他
+.DS_Store
+*.bak
+*.tmp
