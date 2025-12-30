@@ -237,7 +237,7 @@ curl -H "Authorization: invalid-format" \
 1. **立即更换 Token**
    ```bash
    # 生成新 Token
-   python -c "import secrets; print(secrets.token_urlsafe(32))"
+   python -c "import secrets; print(secrets.token_urlsafe(32)"
    
    # 更新 .env
    vim .env
