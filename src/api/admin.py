@@ -14,6 +14,7 @@ import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from src.auth import AuthToken
 from src.dependencies import get_scheduler
 
 
@@ -49,6 +50,7 @@ class GapFillResponse(BaseModel):
 
 @router.post("/gap-fill", response_model=GapFillResponse)
 async def trigger_gap_fill(
+    token: AuthToken,  # 认证依赖
     request: GapFillRequest,
     scheduler = Depends(get_scheduler),
 ) -> GapFillResponse:
@@ -157,6 +159,7 @@ class BatchGapFillResponse(BaseModel):
 
 @router.post("/gap-fill/batch", response_model=BatchGapFillResponse)
 async def trigger_batch_gap_fill(
+    token: AuthToken,  # 认证依赖
     request: BatchGapFillRequest,
     scheduler = Depends(get_scheduler),
 ) -> BatchGapFillResponse:

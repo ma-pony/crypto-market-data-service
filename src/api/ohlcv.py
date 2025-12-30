@@ -21,6 +21,7 @@ from src.api.schemas import (
     OHLCVResponse,
     PaginationInfo,
 )
+from src.auth import AuthToken
 from src.dependencies import (
     DbSession,
     OHLCVRepo,
@@ -98,6 +99,7 @@ def _validate_symbol(symbol: str) -> str:
 
 @router.get("/ohlcv/{exchange}/{symbol:path}", response_model=OHLCVListResponse)
 async def get_ohlcv(
+    token: AuthToken,  # 认证依赖
     exchange: ValidExchange,
     symbol: str,
     session: DbSession,
@@ -193,6 +195,7 @@ async def get_ohlcv(
 
 @router.post("/ohlcv/batch", response_model=BatchResponse)
 async def batch_ohlcv(
+    token: AuthToken,  # 认证依赖
     request: BatchRequest,
     session: DbSession,
     ohlcv_repo: OHLCVRepo,

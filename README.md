@@ -6,6 +6,7 @@
 
 - 📊 **K线数据 (OHLCV)**: 支持多交易所、多交易对、多时间周期的历史K线数据查询
 - 💹 **实时行情 (Ticker)**: 提供实时价格、24小时统计等市场快照数据
+- 🔒 **API 认证**: Bearer Token 认证保护所有 API 接口
 - 🚀 **高性能缓存**: Redis 双层缓存策略，OHLCV 使用 Sorted Set + 大小限制，Ticker 使用 TTL 自动过期
 - 🔄 **自动采集**: 后台定时采集数据，Ticker 每 10 秒更新，OHLCV 按周期自动采集
 - 📦 **批量查询**: 支持一次查询多个交易对，提高效率
@@ -111,6 +112,10 @@ TICKER_TTL_SECONDS=10        # Ticker 缓存过期时间（秒）
 API_HOST=0.0.0.0
 API_PORT=8000
 
+# API 认证（生产环境必须配置）
+# 生成 Token: python -c "import secrets; print(secrets.token_urlsafe(32))"
+API_TOKEN=your-secret-token-here
+
 # 数据采集配置
 GAP_FILL_ENABLED=true
 GAP_FILL_DAYS=7
@@ -178,9 +183,41 @@ uv run uvicorn src.main:app --host 0.0.0.0 --port 8000 --workers 4
 服务启动后，访问以下地址：
 
 - **服务信息**: http://localhost:8000/
-- **健康检查**: http://localhost:8000/health
+- **健康检查**: http://localhost:8000/health（无需认证）
 - **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
+
+**注意：** 除了 `/` 和 `/health` 端点，所有 API 都需要 Bearer Token 认证。详见 [API 认证文档](API_AUTHENTICATION.md)。
+
+## API 认证
+
+所有 API 接口都需要通过 Bearer Token 进行认证。
+
+### 生成 Token
+
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(32))"
+```
+
+### 配置 Token
+
+在 `.env` 文件中配置：
+```bash
+API_TOKEN=your-generated-token-here
+```
+
+### 使用 Token
+
+```bash
+# 设置 Token
+export API_TOKEN="your-token-here"
+
+# 调用 API
+curl -H "Authorization: Bearer $API_TOKEN" \
+  http://localhost:8000/api/v1/ticker/binance/BTC/USDT
+```
+
+详细文档请查看 [API_AUTHENTICATION.md](API_AUTHENTICATION.md)。
 
 ## API 端点
 
@@ -223,10 +260,14 @@ GET /health
 #### 查询单个交易对
 
 ```bash
+# 设置 API Token
+export API_TOKEN="your-token-here"
+
 GET /api/v1/ohlcv/{exchange}/{symbol}?timeframe=1h&limit=100&start=1703404800000&end=1703491200000
 
 # 示例
-curl "http://localhost:8000/api/v1/ohlcv/binance/BTC/USDT?timeframe=1h&limit=100"
+curl -H "Authorization: Bearer $API_TOKEN" \
+  "http://localhost:8000/api/v1/ohlcv/binance/BTC/USDT?timeframe=1h&limit=100"
 
 # 响应
 {
@@ -260,6 +301,7 @@ curl "http://localhost:8000/api/v1/ohlcv/binance/BTC/USDT?timeframe=1h&limit=100
 ```bash
 POST /api/v1/ohlcv/batch
 Content-Type: application/json
+Authorization: Bearer your-token-here
 
 {
   "exchange": "binance",
@@ -269,6 +311,18 @@ Content-Type: application/json
   "end": 1703491200000,
   "limit": 100
 }
+
+# 示例
+curl -X POST \
+  -H "Authorization: Bearer $API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "exchange": "binance",
+    "symbols": ["BTC/USDT", "ETH/USDT"],
+    "timeframe": "1h",
+    "limit": 100
+  }' \
+  http://localhost:8000/api/v1/ohlcv/batch
 
 # 响应
 {
@@ -292,9 +346,11 @@ Content-Type: application/json
 
 ```bash
 GET /api/v1/ticker/{exchange}/{symbol}
+Authorization: Bearer your-token-here
 
 # 示例
-curl "http://localhost:8000/api/v1/ticker/binance/BTC/USDT"
+curl -H "Authorization: Bearer $API_TOKEN" \
+  "http://localhost:8000/api/v1/ticker/binance/BTC/USDT"
 
 # 响应
 {
@@ -321,9 +377,11 @@ curl "http://localhost:8000/api/v1/ticker/binance/BTC/USDT"
 
 ```bash
 GET /api/v1/tickers/{exchange}
+Authorization: Bearer your-token-here
 
 # 示例
-curl "http://localhost:8000/api/v1/tickers/binance"
+curl -H "Authorization: Bearer $API_TOKEN" \
+  "http://localhost:8000/api/v1/tickers/binance"
 
 # 响应
 {
@@ -357,12 +415,14 @@ uv run python check_1d_data.py
 
 ```bash
 # 补全最近30天的1日线数据
-curl -X POST "http://localhost:8000/api/v1/admin/gap-fill/batch" \
+curl -X POST \
+  -H "Authorization: Bearer $API_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "days": 30,
     "timeframes": ["1d"]
-  }'
+  }' \
+  "http://localhost:8000/api/v1/admin/gap-fill/batch"
 
 # 补全最近90天的1日线数据
 curl -X POST "http://localhost:8000/api/v1/admin/gap-fill/batch" \
@@ -376,14 +436,16 @@ curl -X POST "http://localhost:8000/api/v1/admin/gap-fill/batch" \
 #### 单个补全
 
 ```bash
-curl -X POST "http://localhost:8000/api/v1/admin/gap-fill" \
+curl -X POST \
+  -H "Authorization: Bearer $API_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "exchange": "binance",
     "symbol": "BTC/USDT",
     "timeframe": "1d",
     "days": 90
-  }'
+  }' \
+  "http://localhost:8000/api/v1/admin/gap-fill"
 ```
 
 **详细文档**: 

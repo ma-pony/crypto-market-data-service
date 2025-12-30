@@ -52,6 +52,12 @@ class Settings(BaseSettings):
     api_host: str = Field(default="0.0.0.0", description="API监听地址")
     api_port: int = Field(default=8000, ge=1, le=65535, description="API监听端口")
     
+    # Authentication
+    api_token: str = Field(
+        default="",
+        description="API认证Token（生产环境必须配置）",
+    )
+    
     # 调度
     retry_max_attempts: int = Field(default=5, ge=1, le=10, description="最大重试次数")
     

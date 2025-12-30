@@ -12,6 +12,7 @@ import time
 from fastapi import APIRouter
 
 from src.api.schemas import TickerMeta, TickerResponse, TickerSingleResponse
+from src.auth import AuthToken
 from src.dependencies import (
     TickerRepo,
     ValidExchange,
@@ -67,6 +68,7 @@ def _calculate_age_ms(ticker_timestamp: int) -> int:
 
 @router.get("/ticker/{exchange}/{symbol:path}", response_model=TickerSingleResponse)
 async def get_ticker(
+    token: AuthToken,  # 认证依赖
     exchange: ValidExchange,
     symbol: str,
     ticker_repo: TickerRepo,
@@ -136,6 +138,7 @@ async def get_ticker(
 
 @router.get("/tickers/{exchange}")
 async def get_all_tickers(
+    token: AuthToken,  # 认证依赖
     exchange: ValidExchange,
     ticker_repo: TickerRepo,
 ) -> dict:
